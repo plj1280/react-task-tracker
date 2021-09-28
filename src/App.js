@@ -1,17 +1,9 @@
 import Task from './Task'
-import ProgressBar from "./ProgressBar"
 import {useState, useEffect} from 'react'
 
 function App() {
 
   const [tasks, setTasks] = useState([]);
-/*   const [tasks, setTasks] = useState([{
-    description : "Learn React!",
-    progress : 0,
-    active : true,
-    startTime : new Date().getTime()
-  }]) */
-  const [nTasks, setNTasks] = useState(0);
   const [textInput, setTextInput] = useState("");
 
   const onClickCreateTask = () => {
@@ -25,7 +17,7 @@ function App() {
       setTasks(
       [...tasks, 
       {
-      description : response.Item.taskName.S,
+      description : response[0].taskName.S,
       progress : 0,
       active : false,
       startTime : 0,
@@ -43,10 +35,23 @@ function App() {
   req.send();
   };
 
-    useEffect(()=>setInterval(()=>setTasks(ptasks=>ptasks.map((task)=>(
-      task.active ? {...task, progress : task.savedProgress + ((new Date().getTime())-task.startTime)/100} : task
-    )
-      )), 100),[])
+  useEffect(()=>setInterval(()=>setTasks(ptasks=>ptasks.map((task)=>(
+    task.active ? {...task, progress : task.savedProgress + ((new Date().getTime())-task.startTime)/100} : task
+  )
+    )), 100),[])
+
+  function getTasksFromDB() {
+    var req = new XMLHttpRequest();
+    req.open("GET","https://u34x82trhl.execute-api.us-east-2.amazonaws.com/Prod/tasks");
+    req.onload = function () {
+      setTasks(JSON.parse(this.responseText))
+    }
+    req.send()
+  }
+  useEffect(()=>{
+    getTasksFromDB()
+  },[])
+
 
 
 

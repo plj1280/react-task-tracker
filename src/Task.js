@@ -10,7 +10,7 @@ function Task(props) {
 
     return (
         <div>
-            Task: {props.task.description}
+            Task: {props.task.taskName}
             <button className='playButton' style={buttonStyle} onClick={props.task.onClickSetActive}>Start</button>
             <ProgressBar progress={props.task.progress}></ProgressBar>
         </div>
