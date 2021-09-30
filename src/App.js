@@ -1,12 +1,12 @@
 import Task from './Task'
 import Login from './Login'
+import NewTask from './NewTask'
 import {useState, useEffect} from 'react'
 
 function App() {
 
   const dbURL = "https://u34x82trhl.execute-api.us-east-2.amazonaws.com/Prod/tasks"
   const [tasks, setTasks] = useState([]);
-  const [newTaskText, setNewTaskText] = useState("");
   const [username, setUsername] = useState("")
   const [loggedin, setLoggedin] = useState(false)
 
@@ -15,17 +15,11 @@ function App() {
     return isNaN(num) ? val : num
   }
 
-  const onClickCreateTask = () => {
+  const onClickCreateTask = (newtask) => {
     var req = new XMLHttpRequest();
     req.open("POST",dbURL);
-    const newtask = {
-      taskName : newTaskText,
-      username : username,
-      targetTime : 0
-    }
     req.onload = function() {
       var task = JSON.parse(this.responseText,strToNum)
-      setNewTaskText("");
       setTasks([...tasks,
         {...task,
           onClickDeleteTask : onClickDeleteTaskGen(task),
@@ -84,7 +78,6 @@ function App() {
   }, [username])
 
 
-
   useEffect(()=>setInterval(()=>{
     setTasks(ptasks=>ptasks.map((task)=>{
       return task.active ? {...task, progress:task.elapsedTime+(new Date().getTime()-task.startTime)/100} : task
@@ -93,15 +86,12 @@ function App() {
 
   return (
     <div className="App">
-      Hello.
-      {tasks.map((task)=> <Task task={task} key={task.creationTime}></Task>)}
       <Login username={username} loggedin={loggedin}
       setUsername={setUsername}
       setLoggedin={setLoggedin}
       ></Login>
-      New task
-      <input type="text" value={newTaskText} onChange={(event)=>setNewTaskText(event.target.value)}/>
-      <button onClick={onClickCreateTask}>New task</button>
+      {tasks.map((task)=> <Task task={task} key={task.creationTime}></Task>)}
+      <NewTask username={username} onClickCreateTask={onClickCreateTask}></NewTask>
     </div>
     
   );

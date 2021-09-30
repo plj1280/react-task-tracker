@@ -10,6 +10,7 @@ function Login(props) {
             props.setUsername(userText)
             setUserText("")
             props.setLoggedin(true)
+            event.preventDefault()
         }
         }>
             <label>
