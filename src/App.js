@@ -1,11 +1,14 @@
 import Task from './Task'
+import Login from './Login'
 import {useState, useEffect} from 'react'
 
 function App() {
 
   const dbURL = "https://u34x82trhl.execute-api.us-east-2.amazonaws.com/Prod/tasks"
   const [tasks, setTasks] = useState([]);
-  const [textInput, setTextInput] = useState("");
+  const [newTaskText, setNewTaskText] = useState("");
+  const [username, setUsername] = useState("")
+  const [loggedin, setLoggedin] = useState(false)
 
   function strToNum(key,val) {
     const num = Number(val)
@@ -16,13 +19,13 @@ function App() {
     var req = new XMLHttpRequest();
     req.open("POST",dbURL);
     const newtask = {
-      taskName : textInput,
-      username : "plj1280",
+      taskName : newTaskText,
+      username : username,
       targetTime : 0
     }
     req.onload = function() {
       var task = JSON.parse(this.responseText,strToNum)
-      setTextInput("");
+      setNewTaskText("");
       setTasks([...tasks,
         {...task,
           onClickDeleteTask : onClickDeleteTaskGen(task),
@@ -61,23 +64,29 @@ function App() {
     var req = new XMLHttpRequest();
     req.open("GET",dbURL);
     req.onload = function () {
-      var dbTasks = JSON.parse(this.responseText,strToNum)
-      setTasks(dbTasks.map(function (item) {
-        return {
-          ...item,
-          onClickDeleteTask : onClickDeleteTaskGen(item),
-          onClickSetActive : onClickSetActiveGen(item)
+      if(this.status===200) {
+        var dbTasks = JSON.parse(this.responseText,strToNum)
+        if(dbTasks.length){
+          setTasks(dbTasks.map(function (item) {
+            return {
+              ...item,
+              onClickDeleteTask : onClickDeleteTaskGen(item),
+              onClickSetActive : onClickSetActiveGen(item)
+            }
+          }))
         }
-      }))
+        else{setTasks([])}
+      }
+      else{setTasks([])}
     }
+    req.setRequestHeader("username",username)
     req.send()
-  }, [])
+  }, [username])
 
 
 
   useEffect(()=>setInterval(()=>{
     setTasks(ptasks=>ptasks.map((task)=>{
-    //task.active ? {...task, progress : task.savedProgress + ((new Date().getTime())-task.startTime)/100} : task
       return task.active ? {...task, progress:task.elapsedTime+(new Date().getTime()-task.startTime)/100} : task
     }))}, 100),[])
 
@@ -86,8 +95,12 @@ function App() {
     <div className="App">
       Hello.
       {tasks.map((task)=> <Task task={task} key={task.creationTime}></Task>)}
-          New task
-          <input type="text" value={textInput} onChange={(event)=>setTextInput(event.target.value)}/>
+      <Login username={username} loggedin={loggedin}
+      setUsername={setUsername}
+      setLoggedin={setLoggedin}
+      ></Login>
+      New task
+      <input type="text" value={newTaskText} onChange={(event)=>setNewTaskText(event.target.value)}/>
       <button onClick={onClickCreateTask}>New task</button>
     </div>
     
